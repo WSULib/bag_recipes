@@ -3,6 +3,8 @@
 # WSUDOR_bagger script
 
 import datetime
+import hashlib
+import md5
 import os
 import subprocess
 import uuid
@@ -13,7 +15,7 @@ OVERVIEW
 		- such that another won't exist already in that dir	
 	2) move everything from that dir into temp directory
 	3) rename temp dir to "/data"
-	4) create files
+	4) create files, eg.: 
 		- bag-info.txt
 			Bag-Software-Agent: bagit.py <http://github.com/libraryofcongress/bagit-python>
 			Bagging-Date: 2016-01-26
@@ -40,6 +42,8 @@ OVERVIEW
 TO-DO
 	- include logging
 	- include command line arg parsing
+	- error checking
+	- rollback?
 '''
 
 
@@ -64,8 +68,7 @@ def make_bag(d,metadata):
 	# 3) rename temp data dir
 	os.rename( "/".join( [d,temp_data_dir] ), "/".join( [d,"data"] ))
 
-	# 4) create files
-	# bag-info.txt	
+	# 4) write metadata files		
 	write_baginfo(d,metadata)
 	write_bagit(d)
 	write_manifest(d)
@@ -120,7 +123,10 @@ def write_manifest(d):
 		lines = []
 		
 		# iterate through files, gen hash
-
+		files = _walk(d)
+		for f in files:
+			f_hash = md5(f)
+			lines.append("%s  %s" % (f_hash,f))
 
 		fhand.writelines([line+"\n" for line in lines])
 
@@ -133,12 +139,17 @@ def write_tagmanifest(d):
 		# base lines
 		lines = []
 		
-		# iterate through tags, gen hash
-		
+		# iterate through files, gen hash
+		dirpath, dirnames, filenames = os.walk(d).next()		
+		for f in filenames:			
+			f_hash = md5(os.path.join(d,f))
+			lines.append("%s  %s" % (f_hash,f))
 
 		fhand.writelines([line+"\n" for line in lines])
 
 
+# handy size generator
+# http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python
 def get_size(start_path = '.'):
 	total_size = 0
 	for dirpath, dirnames, filenames in os.walk(start_path):
@@ -148,11 +159,35 @@ def get_size(start_path = '.'):
 	return total_size
 
 
+# nice walk function from LOC bagit.py
+# https://github.com/LibraryOfCongress/bagit-python/blob/master/bagit.py
+def _walk(data_dir):
+	for dirpath, dirnames, filenames in os.walk(data_dir):
+		# if we don't sort here the order of entries is non-deterministic
+		# which makes it hard to test the fixity of tagmanifest-md5.txt
+		filenames.sort()
+		dirnames.sort()
+		for fn in filenames:
+			path = os.path.join(dirpath, fn)
+			# BagIt spec requires manifest to always use '/' as path separator
+			if os.path.sep != '/':
+				parts = path.split(os.path.sep)
+				path = '/'.join(parts)
+			yield path
 
+# gen md5
+# http://stackoverflow.com/questions/3431825/generating-a-md5-checksum-of-a-file
+def md5(fname):
+    hash = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash.update(chunk)
+    return hash.hexdigest()
+
+
+# main
 if __name__ == '__main__':
 	make_bag()
-
-
 
 
 	
