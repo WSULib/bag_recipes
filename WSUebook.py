@@ -6,6 +6,7 @@ import os
 import sys
 import md5
 import bagit
+import WSUDOR_bagger
 import requests
 import json
 import xmltodict
@@ -161,7 +162,13 @@ def createBag(d):
 
 	# finally, BagIt-ify the directory
 	print "creating bag..."
-	bag = bagit.make_bag("{obj_dir}".format(obj_dir=obj_dir),{
+	# LOC bagit.py
+	# bag = bagit.make_bag("{obj_dir}".format(obj_dir=obj_dir),{
+	# 	'Collection PID' : "wayne:collection"+collection_name,
+	# 	'Object PID' : PID
+	# })
+	# local WSUDOR bagger
+	bag = WSUDOR_bagger.make_bag("{obj_dir}".format(obj_dir=obj_dir),{
 		'Collection PID' : "wayne:collection"+collection_name,
 		'Object PID' : PID
 	})	
