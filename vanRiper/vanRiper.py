@@ -14,7 +14,6 @@ import functions
 #### 1) SETUP ####
 # Set file
 file = raw_input("Please input the full path to your xml file. For example, /repository/civil_war/civilwarmods.xml. Remember to start with a / and press enter/return: \n")
-# file = "/repository/civil_war/civilwarmods.xml"
 
 image_path = raw_input("What is the name of the folder in which you have placed your images? \n")
 pwd = os.popen('pwd').read()
@@ -34,18 +33,8 @@ if confirm == "yes":
 else:
     sys.exit("please correct your XML to have the correct namespaces")
 
-# ns = {'mods': 'http://www.loc.gov/mods/v3', 'mets': 'http://www.loc.gov/METS/'}
-
 #### 2) IDENTIFY MAJOR CONTENT ####
 # Wrap into a for loop that goes through and finds each MODS object one by one
-
-# TESTING GET RID OF START
-# currentPID = ['MSS-001-006-008']
-# for each in currentPID:
-#     currentPID = each
-
-# TESTING GET RID OF END
-
 
 collectionObj = raw_input("Okay, Look in your XML document. What is the mets:dmdSec ID of your collection object? For example, MSS-001. Type it in below and press enter/return: \n")
 
@@ -75,8 +64,6 @@ for eachPID in PIDS:
     for each in currentMODS:
         stringMODS = etree.tostring(each, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
-    # KEEP AND UNCOMMENT IN PRODUCTION
-
     # Grab file name and copy file to PID folder
     try:
         fileName = "MODS.xml"
@@ -86,7 +73,6 @@ for eachPID in PIDS:
             stream.write(stringMODS)
     except OSError:
         print "File already exists"
-        # raise
 
 #### 4) PARSE MODS STRUCTURE FOR MANIFEST ####
     # Make our dictionary of files and ORDER for each PID
@@ -112,21 +98,6 @@ for eachPID in PIDS:
         fileAmount = len(numberData)
     else:
         print "error: you have different amounts of files and Order numbers"
-
-    # Find the area that has the files associated with PID. aka Find DMDID="PID" //<element>
-    # currentFiles = tree.xpath("//mets:div[@DMDID='"+currentPID+"']/mets:div/mets:fptr", namespaces=ns)
-    # nestedFiles = False
-    # #How many files do we have?
-    # fileAmount = len(currentFiles)
-
-    # if fileAmount == 0:
-    # #     # check that it's not just grabbing the wrong part
-    #     currentFiles = tree.xpath("//mets:div[@DMDID='"+currentPID+"']/mets:div/mets:div/mets:fptr", namespaces=ns)
-    #     fileAmount = len(currentFiles)
-    #     nestedFiles = True
-    # else:
-    # #     # keep old fileAmount/aka it must be zero
-    #     fileAmount = len(currentFiles)
 
     datastreamList = []
     datastreamDictionary = {}
@@ -199,7 +170,6 @@ for eachPID in PIDS:
             try:
                 with open(currentStrFileIDPath) as file:
                     # grab and place in PID folder
-# UNCOMMENT FOR PRODUCTION
                     os.system("ln -s " + "/" + currentStrFileIDPath + " " + path + "/" + currentStrFileID)
                     print currentStrFileIDPath
                     print "copying "+currentStrFileIDPath + " to its new directory"
@@ -231,18 +201,10 @@ for eachPID in PIDS:
 
 #### 5) CREATE OBJMETA MANIFEST
 
-
         # Make all the properties
         label = tree.xpath("//mets:div[@DMDID='"+currentPID+"']", namespaces=ns)[0].attrib['LABEL']
         representativeImage = orderDictionary[min(orderDictionary)]
-        # try:
-        #     remove_prefix = orderDictionary["1"].split("-").pop()
-        #     remove_suffix = remove_prefix.split(".jpg")[0]
-        #     representativeImage = currentPID + "-" + remove_suffix
-        # except KeyError:
-        #     representativeImage = ''
 
-        # make into a class and populate its properties?
         objMetaTemplate = {
             "content_type": "WSUDOR_Image",
             "datastreams": datastreamList,
