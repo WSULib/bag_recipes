@@ -47,7 +47,7 @@ TO-DO
 '''
 
 
-def make_bag(d,metadata):
+def make_bag(d,metadata,skip_manifests=False):
 	'''
 	requires d - string of directory
 	accepts metadata - dictionary of elements: values for bag-info.txt
@@ -71,7 +71,7 @@ def make_bag(d,metadata):
 	# 4) write metadata files		
 	write_baginfo(d,metadata)
 	write_bagit(d)
-	write_manifest(d)
+	write_manifest(d,skip_manifests)
 	write_tagmanifest(d)
 
 	# 5) cleanup and finish
@@ -115,7 +115,7 @@ def write_bagit(d):
 
 
 # write manifest-md5.txt
-def write_manifest(d):
+def write_manifest(d,skip_manifests):
 
 	with open("%s/manifest-md5.txt" % d,'w') as fhand:
 		
@@ -124,9 +124,17 @@ def write_manifest(d):
 		
 		# iterate through files, gen hash
 		files = _walk(d)
-		for f in files:
-			f_hash = md5(f)
-			lines.append("%s  %s" % (f_hash,f))
+
+		if skip_manifests == True:
+			for f in files:
+				f_hash = "Null"
+				print f,"--->",f_hash
+				lines.append("%s  %s" % (f_hash,f))
+		else:
+			for f in files:
+				f_hash = md5(f)
+				print f,"--->",f_hash
+				lines.append("%s  %s" % (f_hash,f))
 
 		fhand.writelines([line+"\n" for line in lines])
 

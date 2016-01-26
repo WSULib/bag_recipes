@@ -14,10 +14,7 @@ from lxml import etree
 import re
 
 
-def main(log_file='/tmp/WSUebook_bag_maker.txt'):
-
-	with open(log_file,'w') as fhand:
-		fhand.write("Errors were had:\n")
+def main():
 
 	# check for output dir
 	if not os.path.exists(output_dir):
@@ -27,13 +24,10 @@ def main(log_file='/tmp/WSUebook_bag_maker.txt'):
 	for each in [d for d in os.listdir(input_dir) if os.path.isdir("/".join([input_dir,d])) ]:
 
 		# run
-		try:
-			createBag( "/".join([input_dir,each]) )
-		except Exception, e:
-			print "Skipping / Fail",each
-			print e
-			with open(log_file,'a') as fhand:
-				fhand.write(each+e+"\n")
+		# try:
+		createBag( "/".join([input_dir,each]) )
+		# except:
+		# 	print "Skipping / Fail",each
 
 
 def createBag(d):
@@ -169,21 +163,21 @@ def createBag(d):
 	# finally, BagIt-ify the directory
 	print "creating bag..."
 	
-	if bagger == 'wsudor':
+	if bagger == 'wsudor'
 		print 'using WSUDOR_bagger'
 		# local WSUDOR bagger
 		bag = WSUDOR_bagger.make_bag("{obj_dir}".format(obj_dir=obj_dir),{
 			'Collection PID' : "wayne:collection"+collection_name,
 			'Object PID' : PID
-		}, skip_manifests)	
+		})	
 	
 	# LOC bagit.py 
 	else:
 		print 'using LOC bagit.py'
-		bag = bagit.make_bag("{obj_dir}".format(obj_dir=obj_dir), {
+		bag = bagit.make_bag("{obj_dir}".format(obj_dir=obj_dir),{
 			'Collection PID' : "wayne:collection"+collection_name,
 			'Object PID' : PID
-		}, processes=15)
+		}, skip_manifests)
 
 
 
@@ -193,8 +187,8 @@ if __name__ == '__main__':
 		- location of bags 
 		- destination for bags
 		- collection name (without prefix)		
-		- bagger name ('WSUDOR' for WSUDOR_bagger, defaults to LOC)
-		- skip manifest generation (True or False)
+		- bagger name (optional: 'WSUDOR' for WSUDOR_bagger, defaults to LOC)
+		- skip manifest generation (optional: True or False)		
 	'''
 	if len(sys.argv) < 4:
 		print run_msg
@@ -202,12 +196,8 @@ if __name__ == '__main__':
 		input_dir = sys.argv[1]
 		output_dir = sys.argv[2]
 		collection_name = sys.argv[3]		
-		try:
-			bagger = sys.argv[4].lower()
-			skip_manifests = bool(sys.argv[5])
-		except:
-			bagger = "loc"
-			skip_manifests = False
+		bagger = sys.argv[4]
+		skip_manifests = bool(sys.argv[5])
 
 		main()
 
