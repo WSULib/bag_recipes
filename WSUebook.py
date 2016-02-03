@@ -25,16 +25,9 @@ def main(log_file='/tmp/WSUebook_bag_maker.txt'):
 
 	# iterate through dir
 	for each in [d for d in os.listdir(input_dir) if os.path.isdir("/".join([input_dir,d])) ]:
+		createBag( "/".join([input_dir,each]) )
 
-		# run
-		try:
-			createBag( "/".join([input_dir,each]) )
-		except Exception, e:
-			print "Skipping / Fail",each
-			print e
-			with open(log_file,'a') as fhand:
-				fhand.write(each+e+"\n")
-
+	
 
 def createBag(d):
 	
@@ -126,7 +119,7 @@ def createBag(d):
 	for ebook_binary in binary_files:
 
 		# skip some undesirables
-		if ebook_binary == ".DS_Store" or ebook_binary.endswith('bak'):
+		if ebook_binary == ".DS_Store" or ebook_binary.endswith('bak') or ebook_binary == "Thumbs.db":
 			continue
 
 		# write symlink
