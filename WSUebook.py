@@ -12,7 +12,7 @@ import json
 import xmltodict
 from lxml import etree
 import re
-
+import traceback
 
 def main(log_file='/tmp/WSUebook_bag_maker.txt'):
 
@@ -25,16 +25,25 @@ def main(log_file='/tmp/WSUebook_bag_maker.txt'):
 
 	# iterate through dir
 	for each in [d for d in os.listdir(input_dir) if os.path.isdir("/".join([input_dir,d])) ]:
-		createBag( "/".join([input_dir,each]) )
+		try:
+			createBag( "/".join([input_dir,each]) )
+
+		except OSError,e:
+			print "OS ERROR - Could not create bag" 
+			print e
+
+		except Exception,e:			
+			print "\n\n############ OTHER ERROR #############",each			
+			traceback.print_exc()
 
 	
 
 def createBag(d):
 	
-	print "working on",d
+	print "\nworking on",d
 
 	# find MODS
-	MODS = [f for f in os.listdir(d) if f.startswith("DSJ") and f.endswith(".xml")][0]
+	MODS = [f for f in os.listdir(d) if f.startswith("MODS") and f.endswith(".xml")][0]
 	print "MODS file:",MODS
 	MODS_tree = etree.parse("/".join([d,MODS]))
 	MODS_root = MODS_tree.getroot()
@@ -43,14 +52,10 @@ def createBag(d):
 
 	# get identifier
 	identifier = MODS_proper.xpath('//mods:identifier[@type="local"]', namespaces=ns)[0].text
-	print "identifier:",identifier
-
-	# get volume / issue
-	volume = MODS_proper.xpath('//mods:detail[@type="volume"]/mods:number', namespaces=ns)[0].text
-	issue = MODS_proper.xpath('//mods:detail[@type="issue"]/mods:number', namespaces=ns)[0].text
+	print "identifier:",identifier	
 
 	# gen full identifier
-	full_identifier = "DSJv" + volume + "i" + issue + identifier
+	full_identifier = identifier
 	print full_identifier
 
 	# generate PID
@@ -137,8 +142,10 @@ def createBag(d):
 			'htm': ('text/html','HTML'),
 			'pdf': ('application/pdf','PDF')
 		}
-		filetype_tuple = filetype_hash[ebook_binary.split(".")[-1]] 			
-		page_num = ebook_binary.split(".")[0].split("_")[2].lstrip('0')
+		filetype_tuple = filetype_hash[ebook_binary.split(".")[-1]] 	
+
+		# determine page number
+		page_num = ebook_binary.split(".")[0].lstrip('0')
 
 		# write to datastreams list		
 		ds_dict = {
@@ -152,6 +159,9 @@ def createBag(d):
 		om_handle.datastreams.append(ds_dict)
 
 		# set isRepresentedBy relationsihp
+		'''
+		This is problematic if missing the first page...
+		'''
 		if page_num == "1" and filetype_tuple[1] == 'IMAGE':
 			om_handle.isRepresentedBy = ds_dict['ds_id']
 
